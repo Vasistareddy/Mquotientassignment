@@ -1,0 +1,161 @@
+#include<stdio.h>
+#include<math.h>
+
+#include "cv.h"
+#include  "highgui.h"
+
+int feature(int **orgimg,int i,int j,int w,int temp)
+{      int k,max1=0,max2=0,min;
+          if(temp == 0)
+       {     max1 = orgimg[i][j-1]; max2 = orgimg[i][j+1];
+                   for(k=2;k<=w;k++)
+                 {     if(orgimg[i][j-k] > max1) max1 = orgimg[i][j-k];
+                       if(orgimg[i][j+k] > max2) max2 = orgimg[i][j+k];
+                 }
+                  if(max1 > max2) min = max2; else min = max1;
+                min = min - orgimg[i][j];
+       }
+       else if(temp == 45)
+           {      max1 = orgimg[i+1][j-1]; max2 = orgimg[i-1][j+1];
+                   for(k=2;k<=w;k++)
+                 {     if(orgimg[i+k][j-k] > max1) max1 = orgimg[i+k][j-k];
+                       if(orgimg[i-k][j+k] > max2) max2 = orgimg[i-k][j+k];
+                 }
+                  if(max1 > max2) min = max2; else min = max1;
+                min = min - orgimg[i][j];
+           }
+       else if(temp == 90)
+            {     max1 = orgimg[i+1][j]; max2 = orgimg[i-1][j];
+                   for(k=2;k<=w;k++)
+                 {     if(orgimg[i+k][j] > max1) max1 = orgimg[i+k][j];
+                       if(orgimg[i-k][j] > max2) max2 = orgimg[i-k][j];
+                 }
+                  if(max1 > max2) min = max2; else min = max1;
+                min = min - orgimg[i][j];
+            }
+       else if(temp == 135)
+            {      max1 = orgimg[i-1][j-1]; max2 = orgimg[i+1][j+1];
+                   for(k=2;k<=w;k++)
+                 {     if(orgimg[i-k][j-k] > max1) max1 = orgimg[i-k][j-k];
+                       if(orgimg[i+k][j+k] > max2) max2 = orgimg[i+k][j+k];
+                 }
+                  if(max1 > max2) min = max2; else min = max1;
+                min = min - orgimg[i][j];
+            }
+          return min;
+}                                                                                                                                    
+
+
+
+void findeta(long int hist[],int *thr)
+{        long int total=0;   
+        float totalmean=0,meant=0,wo=0,w1=0,varb=0,vart=0,p[256],max=0,uo=0,u1=0,temp;int i,t,tmax=0;
+         for(i=0;i<256;i++)
+           total += hist[i];
+         for(i=0;i<256;i++)
+           p[i] = (float)(hist[i])/total;
+         for(i=0;i<256;i++)
+            totalmean += (float)(i) * p[i];  
+         for(i=0;i<256;i++) 
+            vart += ((float)(i) - totalmean) * ((float)(i) - totalmean) * p[i];
+        for(t=0;t<256;t++)
+        {      for(i=0;i<=t;i++)
+               { wo += p[i];meant += (float)(i) * p[i];}
+                  w1 = 1 - wo;
+                  uo = meant/wo;u1 = (totalmean - meant)/(1-uo);
+                  varb = (totalmean * wo - meant); varb *= varb;varb /= wo * w1;
+                  temp = varb/vart;
+                  if(temp > max ) { max = temp;tmax = t; }
+                        wo=0;meant=0;
+       }
+                                                                                                                             
+              *thr = tmax;
+}
+
+int main(int argc,char *argv[])
+{   
+      IplImage *img1;
+      int width,height,step,depth,channels;
+      int **orgimg,**respimg,**outimg;     
+      int w,max,min,i,j,k,s;long int e[256];
+
+      void findeta(long int[],int *);
+
+      img1 = cvLoadImage(argv[1],-1);
+ 
+      height = img1->height;
+      width = img1->width;
+      step = img1->widthStep;
+      depth = img1->depth;
+      channels = img1->nChannels;
+
+      uchar *data = (uchar *)img1->imageData;
+
+      orgimg = (int **)malloc(sizeof(int *)*height);
+      respimg = (int **)malloc(sizeof(int *)*height);
+      outimg = (int **)malloc(sizeof(int *)*height);
+
+      for(i=0;i<height;i++)
+        { orgimg[i] = (int *)malloc(sizeof(int)*width);
+          respimg[i] = (int *)malloc(sizeof(int)*width);
+          outimg[i] = (int *)malloc(sizeof(int)*width);
+        }  
+
+       for(i=0;i<height;i++)
+       for(j=0;j<width;j++)
+          orgimg[i][j] = data[i*step+j];
+
+       for(i=0;i<256;i++) e[i] = 0;
+
+      printf("Enter width of the stroke:");
+      scanf("%d",&w); 
+           
+      for(i=0;i<height;i++)
+      for(j=0;j<width;j++)
+       {    if(i<w || j<w || i>=(height-w) || j>=(width-w))
+              respimg[i][j] = 0;
+            else
+              {     max=feature(orgimg,i,j,w,0); 
+                    int temp=feature(orgimg,i,j,w,45);if(temp>max) max=temp;
+                    temp=feature(orgimg,i,j,w,90);if(temp>max) max=temp;
+                    temp=feature(orgimg,i,j,w,135);if(temp>max)max=temp;
+                    if(max<0) max=0;  max = 2*max;if(max>255) max = 255;
+                    respimg[i][j]=max;
+                    e[respimg[i][j]]++;
+               }
+        } 
+        
+        findeta(e,&s);
+        printf("\nThreshold=%d\n",s);
+        
+        for(i=0;i<height;i++)
+        for(j=0;j<width;j++)
+         {  if(respimg[i][j] <= s) outimg[i][j]=255;   
+            else outimg[i][j]=0;
+         } 
+
+     for(i=0;i<height;i++)
+     for(j=0;j<width;j++)
+       data[i*step+j] = respimg[i][j];
+
+     //cvSaveImage("RespImg_newfeature2.pgm",img1);
+     
+     for(i=0;i<height;i++)
+     for(j=0;j<width;j++)
+       data[i*step+j] = outimg[i][j];
+
+     cvSaveImage("final2.jpg",img1);
+
+     for(i=0;i<height;i++)
+        { free(orgimg[i]);
+          free(respimg[i]);
+          free(outimg[i]);
+        }  
+     free(orgimg);free(respimg);free(outimg);
+
+     cvReleaseImage(&img1);
+     
+     return 0;
+          
+}
+                         

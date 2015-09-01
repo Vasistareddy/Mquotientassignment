@@ -1,0 +1,22 @@
+in C :--
+
+gcc -ggdb `pkg-config --cflags opencv` -o `basename opencvtest.c .c` opencvtest.c `pkg-config --libs opencv`
+
+in C++:--
+
+g++ -ggdb `pkg-config --cflags opencv` -o `basename opencvtest.cpp .cpp` opencvtest.cpp `pkg-config --libs opencv`
+
+
+binarization.cpp :--
+
+to compile type below line in the terminal
+
+g++ -ggdb `pkg-config --cflags opencv` -o `basename binarization.cpp .cpp` binarization.cpp `pkg-config --libs opencv`
+
+
+to run
+
+./binarization 1.jpg#path of the image file needed as a argument
+
+
+

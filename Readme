@@ -1,0 +1,15 @@
+simpleoutputs--(output folder of simple folder)
+1.jpg........5.jpg
+used: assignment3.py
+
+realoutputs--(output folder of real folder)
+output1.jpg.......output39.jpg(outputs of assignment3.py file)
+final1.jpg...........final39.jpg(outputs of binarization.cpp)
+used:assignment3.py and binarization.cpp
+
+Note: the output of the assignment3.py file is given to the input of binarization.cpp
+
+
+padding:--considered 10 images in real and padded the grayscale and canny edge detection of those 10 images
+files:canny.py, padding2.py,test.py
+output_pad_1.jpg...........output_pad_10.jpg

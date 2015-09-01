@@ -1,0 +1,15 @@
+binarization.cpp :--
+
+to compile type below line in the terminal
+
+g++ -ggdb `pkg-config --cflags opencv` -o `basename binarization.cpp .cpp` binarization.cpp `pkg-config --libs opencv`
+
+
+to run
+
+./binarization 1.jpg#path of the image file needed as a argument(image must be grayscale-1 channel)
+
+Stroke of the width:10(my choice)
+
+
+
